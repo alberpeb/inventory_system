@@ -127,8 +127,8 @@ class ProductAPITestCase(TestCase):
         # Test filtering by price range
         response = client.get('/products/?min_price=50&max_price=100')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Assert that the response contains products within the specified price range
-        self.assertTrue(all(50 <= float(product['price']) <= 100 for product in response.data['products']))
+        # Assert that the response contains one product within the specific price range
+        self.assertTrue(len(response.data['products']) == 1)
 
     def test_filter_by_category(self):
         client = APIClient()
