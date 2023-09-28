@@ -1,8 +1,9 @@
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from .models import Product
+from .serializers import ProductSerializer
 
-@require_GET
+@api_view(['GET'])
 def list_products(request):
     # Get query parameters from the request
     name = request.GET.get('name', '')
@@ -23,11 +24,6 @@ def list_products(request):
     if category:
         queryset = queryset.filter(category=category)
 
-    # Serialize the filtered queryset to JSON
-    products = [{'name': product.name,
-                 'description': product.description,
-                 'price': str(product.price),
-                 'quantity': product.quantity,
-                 'category': product.category} for product in queryset]
+    serializer = ProductSerializer(queryset, many=True)
 
-    return JsonResponse({'products': products})
+    return Response({'products': serializer.data})

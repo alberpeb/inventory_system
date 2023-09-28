@@ -1,5 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
+from rest_framework import status
 from .models import Product
 
 class ProductAPITestCase(TestCase):
@@ -106,4 +107,33 @@ class ProductAPITestCase(TestCase):
             category="FOOD"
         )
 
- 
+    def test_list_all_products(self):
+        client = APIClient()
+        response = client.get('/products/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Assert that all products are returned in the response
+        self.assertEqual(len(response.data['products']), Product.objects.count())
+
+    def test_filter_by_name(self):
+        client = APIClient()
+        # Test filtering by name
+        response = client.get('/products/?name=Xiaomi')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Assert that the response contains products with names containing 'Xiaomi'
+        self.assertTrue(all('Xiaomi' in product['name'] for product in response.data['products']))
+
+    def test_filter_by_price_range(self):
+        client = APIClient()
+        # Test filtering by price range
+        response = client.get('/products/?min_price=50&max_price=100')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Assert that the response contains products within the specified price range
+        self.assertTrue(all(50 <= float(product['price']) <= 100 for product in response.data['products']))
+
+    def test_filter_by_category(self):
+        client = APIClient()
+        # Test filtering by category
+        response = client.get('/products/?category=ELECTRONICS')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Assert that the response contains products with the 'ELECTRONICS' category
+        self.assertTrue(all(product['category'] == 'ELECTRONICS' for product in response.data['products']))
